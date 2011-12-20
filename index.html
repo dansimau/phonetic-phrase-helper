@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Phonetic alphabet helper</title>
+<style>
+
+/* Hide form on startup. Will be shown by JavaScript on init */
+form {
+	display: none;
+}
+
+/**
+ * General styles.
+ **/
+body {
+   	font-family: Verdana;
+    margin-left: 1em;
+}
+h1 {
+	font-size: 1.5em;
+	color: grey;
+}
+p {
+	font-size: smaller;
+	color: grey;
+}
+input {
+    font-size: 1.5em;
+}
+
+/**
+ * Styles for output presentation.
+ **/
+table {
+	margin-top: 1em;
+    margin-left: 4em;
+}
+output {
+    font-size: 1.6em;
+}
+output td:hover {
+    background: #FAF8CC;
+}
+output td {
+    cursor: default;
+}
+.description-text, .phonetic {
+   	color: grey;
+}
+.description-text {
+    font-size: smaller;
+    color: #777;
+}
+.phonetic {
+    color: #444;
+}
+.char {
+    font-weight: bold;
+}
+</style>
+<script src="phonetics.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script>
+/**
+ * Main function that handles all processing for this web app
+ */
+$(function() {
+
+	var output = $("output");
+
+	/**
+	 * Takes a string, calls the phonetics library to return an array of phonetics associated with
+	 * the letters of the string and prints the results as a HTML table to the output element.
+	 **/
+	var process = function(string) {
+
+		// Get phonetic descriptions
+		var p = phonetics(string);
+
+		var code = "";
+		code += "<table>";
+
+		for (c in string) {
+
+			code += "<tr>";
+		    code += "<td>";
+
+			// Print the current character itself
+		    code += "<span class=\"char\">" + string[c] + "</span>";
+
+			// Print a colon separator if the character isn't a space
+			if (string.charCodeAt(c) !== 32) code += ":";
+
+			code += "</td>";
+			code += "<td>";
+
+			// Print the associated phonetic along with a description
+			if (string.charCodeAt(c) > 47 && string.charCodeAt(c) < 58) {
+				code += "<span class=\"description-text\">number</span> ";
+				code += "<span class=\"phonetic\">" + p[c] + "</span>";
+			} else if (string.charCodeAt(c) > 64 && string.charCodeAt(c) < 91) {
+				code += "<span class=\"description-text\">uppercase</span> ";
+				code += "<span class=\"phonetic\">" + p[c] + "</span>";
+			} else if (string.charCodeAt(c) > 96 && string.charCodeAt(c) < 123) {
+				code += "<span class=\"description-text\">lowercase</span> ";
+				code += "<span class=\"phonetic\">" + p[c] + "</span>";
+			} else {
+				code += "<span class=\"phonetic\">" + p[c] + "</span>";
+				code += " <span class=\"description-text\">symbol</span>";
+			}
+
+	        code += "</td>";
+			code += "</tr>";
+		}
+
+		code += "</table>";
+		output.html(code);
+	}
+
+	// Show the form controls on startup (init)
+	$("form").show();
+
+	$("input").change(function() {
+
+		// Process the typed word
+		process(this.value);
+
+		// Insert the typed word into the anchor href to create a permalink
+		window.location.hash = this.value;
+	});
+
+	// Check to see if we have a string in the anchor (permalink), and if so, process it
+	if (document.location.hash !== "") {
+		process(document.location.hash.substr(1));
+		$("input[type=text]").val(document.location.hash.substr(1));
+	}
+});
+</script>
+</head>
+<body>
+<h1>Phonetic alphabet helper</h1> 
+<noscript>The phonetic alphabet helper is written in JavaScript and your browser has JavaScript disabled. You won't be able to run this application unless JavaScript is enabled.</noscript>
+<p>Type your password or string and hit submit to print it out using the <a href="http://en.wikipedia.org/wiki/ICAO_spelling_alphabet">ICAO phonetic alphabet</a>:</p>
+<input type="text" size="40" autocomplete="off" autofocus="autofocus" />
+<input type="button" value="Show" />
+<output></output>
+</body>
+</html>
