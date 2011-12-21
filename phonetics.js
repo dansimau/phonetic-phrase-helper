@@ -81,7 +81,8 @@ var map = {
 
 function phonetics(str) {
 	var arr = [];
-	for (c in str.toLowerCase()) {
+	str = str.toLowerCase();
+	for (c in str) {
 		arr.push(map[str[c]]);
 	}
 	return arr;
