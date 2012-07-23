@@ -8,16 +8,16 @@
  * General styles.
  **/
 body {
-   	font-family: Verdana;
+    font-family: Verdana;
     margin-left: 1em;
 }
 h1 {
-	font-size: 1.5em;
-	color: grey;
+    font-size: 1.5em;
+    color: grey;
 }
 p {
-	font-size: smaller;
-	color: grey;
+    font-size: smaller;
+    color: grey;
 }
 input {
     font-size: 1.5em;
@@ -27,7 +27,7 @@ input {
  * Styles for output presentation.
  **/
 table {
-	margin-top: 1em;
+    margin-top: 1em;
     margin-left: 4em;
 }
 output {
@@ -40,7 +40,7 @@ output td {
     cursor: default;
 }
 .description-text, .phonetic {
-   	color: grey;
+    color: grey;
 }
 .description-text {
     font-size: smaller;
@@ -53,96 +53,109 @@ output td {
     font-weight: bold;
 }
 </style>
-<script src="phonetics.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-<script>
+</head>
+<body>
+<h1>Phonetic alphabet helper</h1>
+<noscript>The phonetic alphabet helper is written in JavaScript and your browser has JavaScript disabled. You won't be able to run this application unless JavaScript is enabled.</noscript>
+<p>
+    Type your password or string and hit submit to print it out using the
+    <a href="http://en.wikipedia.org/wiki/ICAO_spelling_alphabet">ICAO phonetic alphabet</a>:
+</p>
+<input type="text" size="40" autocomplete="off" autofocus="autofocus" />
+<input type="button" value="Show" />
+<output></output>
+<script src="phonetics.js" type="text/javascript"></script>
+<script src="mustache-0.4.0.js" type="text/javascript"></script>
+<script src="ICanHaz-no-mustache.js" type="text/javascript"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script id="table" type="text/html">
+    <table>
+        <tbody>
+            {{#letters}}
+                {{> row}}
+            {{/letters}}
+        </tbody>
+    </table>
+</script>
+<script id="row" type="text/html">
+    <tr>
+        <td><span class="char">{{letter}}</span>{{^space}}:{{/space}}</td>
+        <td><span class="description-text">{{description}}</span> <span class="phonetic">{{phonetic}}</span></td>
+    </tr>
+</script>
+<script type="text/javascript">
 /**
  * Main function that handles all processing for this web app
  */
 $(function() {
 
-	var container = $("body");
+    var container = $("body");
 
-	/**
-	 * Takes a string, calls the phonetics library to return an array of phonetics associated with
-	 * the letters of the string and prints the results as a HTML table to the output element.
-	 **/
-	var process = function(string) {
+    /**
+     * Takes a string, calls the phonetics library to return an array of phonetics associated with
+     * the letters of the string and prints the results as a HTML table to the output element.
+     **/
+    var process = function(string) {
 
-		// Get phonetic descriptions
-		var p = phonetics(string);
+        // Get phonetic descriptions
+        var p = phonetics(string);
 
-		var code = "";
-		code += "<table>";
+        // Create a view for mustache
+        var view = {
+            "letters" : []
+        }
 
-		for (c in string) {
+        for (c in string) {
 
-			code += "<tr>";
-			code += "<td>";
+            var description;
+            var space = true;
 
-			// Print the current character itself
-		    code += "<span class=\"char\">" + string[c] + "</span>";
+            if (string.charCodeAt(c) > 47 && string.charCodeAt(c) < 58) {
+                description = "number";
+            } else if (string.charCodeAt(c) > 64 && string.charCodeAt(c) < 91) {
+                description = "uppercase";
+            } else if (string.charCodeAt(c) > 96 && string.charCodeAt(c) < 123) {
+                description = "lowercase";
+            } else {
+                description = "symbol";
+            }
 
-			// Print a colon separator if the character isn't a space
-			if (string.charCodeAt(c) !== 32) code += ":";
+            if (string.charCodeAt(c) !== 32) {
+                space = false;
+            }
 
-			code += "</td>";
-			code += "<td>";
+            view["letters"].push({
+                "letter" : string[c],
+                "phonetic" : p[c],
+                "description" : description
+            });
+        }
 
-			// Print the associated phonetic along with a description
-			if (string.charCodeAt(c) > 47 && string.charCodeAt(c) < 58) {
-				code += "<span class=\"description-text\">number</span> ";
-				code += "<span class=\"phonetic\">" + p[c] + "</span>";
-			} else if (string.charCodeAt(c) > 64 && string.charCodeAt(c) < 91) {
-				code += "<span class=\"description-text\">uppercase</span> ";
-				code += "<span class=\"phonetic\">" + p[c] + "</span>";
-			} else if (string.charCodeAt(c) > 96 && string.charCodeAt(c) < 123) {
-				code += "<span class=\"description-text\">lowercase</span> ";
-				code += "<span class=\"phonetic\">" + p[c] + "</span>";
-			} else {
-				code += "<span class=\"phonetic\">" + p[c] + "</span>";
-				code += " <span class=\"description-text\">symbol</span>";
-			}
+        var table = ich.table(view);
 
-	        code += "</td>";
-			code += "</tr>";
-		}
+        $("output", container).html(table);
+    }
 
-		code += "</table>";
-		$("output", container).html(code);
-	}
+    var init = function() {
 
-	var init = function() {
+        $("input").change(function() {
 
-		$(container).append("\
-			<p>Type your password or string and hit submit to print it out using the <a href=\"http://en.wikipedia.org/wiki/ICAO_spelling_alphabet\">ICAO phonetic alphabet</a>:</p>\
-			<input type=\"text\" size=\"40\" autocomplete=\"off\" autofocus=\"autofocus\" />\
-			<input type=\"button\" value=\"Show\" /> \
-			<output></output>\
-		");
+            // Process the typed word
+            process(this.value);
 
-		$("input").change(function() {
+            // Insert the typed word into the anchor href to create a permalink
+            window.location.hash = this.value;
+        });
 
-			// Process the typed word
-			process(this.value);
+        // Check to see if we have a string in the anchor (permalink), and if so, process it
+        if (document.location.hash !== "") {
+            process(document.location.hash.substr(1));
+            $("input[type=text]").val(document.location.hash.substr(1));
+        }
+    }
 
-			// Insert the typed word into the anchor href to create a permalink
-			window.location.hash = this.value;
-		});
-
-		// Check to see if we have a string in the anchor (permalink), and if so, process it
-		if (document.location.hash !== "") {
-			process(document.location.hash.substr(1));
-			$("input[type=text]").val(document.location.hash.substr(1));
-		}
-	}
-
-	init();
+    init();
 });
 </script>
-</head>
-<body>
-<h1>Phonetic alphabet helper</h1> 
-<noscript>The phonetic alphabet helper is written in JavaScript and your browser has JavaScript disabled. You won't be able to run this application unless JavaScript is enabled.</noscript>
 </body>
 </html>
