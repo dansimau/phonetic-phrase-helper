@@ -4,14 +4,14 @@ Phonetic phrase helper is a mini-JS app (and library) that allows you to enter a
 
 ## Quick start
 
- * Visit http://dansimau.github.com/phonetic-phrase-helper/ and type in your password.
+ * Visit https://dansimau.github.io/phonetic-phrase-helper/ and type in your password.
  
  * Include `phonetics.js` into your Node project.
 
    Eg.:
 
-    var phonlib = require("./phonetics.js");
-    console.log(phonlib.phonetics("foobar"));
+        var phonlib = require("./phonetics.js");
+        console.log(phonlib.phonetics("foobar"));
 
 ## Note about security
 
